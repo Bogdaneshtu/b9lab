@@ -1,0 +1,46 @@
+{
+  "contract_name": "Splitter",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "kill",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "refill",
+      "outputs": [],
+      "payable": true,
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "recipient1",
+          "type": "address"
+        },
+        {
+          "name": "recipient2",
+          "type": "address"
+        }
+      ],
+      "payable": true,
+      "type": "constructor"
+    }
+  ],
+  "unlinked_binary": "0x60606040526040516040806101db83398101604052808051919060200180519150505b60008054600160a060020a03808516600160a060020a031992831617909255600180548484169083161790556002805433909316929091169190911790555b50505b610168806100736000396000f300606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166341c0e1b58114610048578063538e07591461005d575b600080fd5b341561005357600080fd5b61005b610067565b005b61005b6100ad565b005b6002543373ffffffffffffffffffffffffffffffffffffffff90811691161461008f57600080fd5b60025473ffffffffffffffffffffffffffffffffffffffff16ff5b5b565b60005473ffffffffffffffffffffffffffffffffffffffff166108fc6002345b049081150290604051600060405180830381858888f1935050505015156100f357600080fd5b60015473ffffffffffffffffffffffffffffffffffffffff166108fc6002345b049081150290604051600060405180830381858888f1935050505015156100aa57600080fd5b5b5600a165627a7a72305820c30648849f3b081199bfa5362f154373728fba77c860bcd4d22e01639ba779650029",
+  "networks": {
+    "42": {
+      "events": {},
+      "links": {},
+      "address": "0xd9c7a86d512f3b00bf3dce0ab5f22313593477e6",
+      "updated_at": 1516365683602
+    }
+  },
+  "schema_version": "0.0.5",
+  "updated_at": 1516365683602
+}

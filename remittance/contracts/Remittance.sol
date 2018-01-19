@@ -8,7 +8,7 @@ contract Remittance {
     uint256 expirationTime;
     bool public canExpire;
     
-    address owner;
+    address public owner;
     
     bool activated;
     
@@ -41,7 +41,7 @@ contract Remittance {
     }
     
     function kill() public isOwner() {
-        require(isExpired() || !canExpire);
+        require(isExpired() || !canExpire || getBalance() == 0);
         selfdestruct(owner);
     }
     
@@ -49,7 +49,7 @@ contract Remittance {
         return canExpire && getSecondsTillExpiration() == 0;
     }
     
-    function getBalance() public view returns(uint256) {
+    function getBalance() public constant returns(uint256) {
         return this.balance;
     }
     
@@ -69,3 +69,4 @@ contract Remittance {
     }
     
 }
+
