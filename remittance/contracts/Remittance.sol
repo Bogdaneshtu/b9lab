@@ -6,7 +6,6 @@ contract Remittance {
     bytes32 recipientPasswordHash;
     
     uint256 expirationTime;
-    bool public canExpire;
     
     address public owner;
     
@@ -14,7 +13,6 @@ contract Remittance {
     
     function Remittance() public {
         owner = msg.sender;
-        activated = false;
     }
     
     function activate(address recipientAddress, bytes32 passwordHash, uint256 expirationAfterSeconds) payable public isOwner() {
@@ -24,10 +22,9 @@ contract Remittance {
         recipientPasswordHash = passwordHash;
         if (expirationAfterSeconds != uint256(0)) {
             require(expirationAfterSeconds > 0);
-            expirationTime = (now * 1 seconds) + expirationAfterSeconds;
-            canExpire = true;
+            expirationTime = now + expirationAfterSeconds;
         } else {
-            canExpire = false;
+            expirationTime = 0xFFFFFFF;
         }
         activated = true;
     }
@@ -41,12 +38,16 @@ contract Remittance {
     }
     
     function kill() public isOwner() {
-        require(isExpired() || !canExpire || getBalance() == 0);
+        require(isExpired() || !canExpire() || getBalance() == 0);
         selfdestruct(owner);
     }
     
     function isExpired() public constant returns (bool) {
-        return canExpire && getSecondsTillExpiration() == 0;
+        return canExpire() && getSecondsTillExpiration() == 0;
+    }
+    
+    function canExpire() public constant returns(bool) {
+        return expirationTime == 0xFFFFFFF? false : true;
     }
     
     function getBalance() public constant returns(uint256) {
@@ -54,7 +55,7 @@ contract Remittance {
     }
     
     function getSecondsTillExpiration() constant public returns (uint256) {
-        if(canExpire) {
+        if(canExpire()) {
             uint256 currentTime = now * 1 seconds;
             if (expirationTime > currentTime) {
                 return expirationTime - currentTime;
