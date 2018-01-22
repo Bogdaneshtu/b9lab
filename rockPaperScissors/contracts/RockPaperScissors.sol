@@ -2,8 +2,13 @@ pragma solidity ^0.4.4;
 
 contract RockPaperScissors {
     
+    enum GameMove {Rock, Paper, Scissors}
+    
     bool public firstBetDone;
     bool public secondBetDone;
+    
+    bool public firstMoveDecrypted;
+    bool public secondMoveDecrypted;
     
     address firstPlayer;
     address secondPlayer;
@@ -11,8 +16,8 @@ contract RockPaperScissors {
     bytes32 firstPlayersCryptedMove;
     bytes32 secondPlayersCryptedMove;
     
-    string firstPlayersChoise;
-    string secondPlayersChoise;
+    GameMove firstPlayersChoise;
+    GameMove secondPlayersChoise;
     
     address owner;
     
@@ -23,46 +28,42 @@ contract RockPaperScissors {
     
     event Bet(uint256 currentBalance, uint256 bet);
     
-    
     function RockPaperScissors() public {
         owner = msg.sender;
     }
     
-    function makeBet() public payable betsNotDone() {
+    function makeBet(bytes32 move) public payable betsNotDone() {
         require(msg.value > 0);
         if (!firstBetDone) {
             firstBetDone = true;
             firstPlayer = msg.sender;
             firstBet = msg.value;
-        } else {
-            require(msg.value >= firstBet);
-            secondBetDone = true;
-            secondPlayer = msg.sender;
-        }
-    }
-    
-    function setMove(bytes32 move) public isPlayer() {
-        if (msg.sender == firstPlayer) {
             firstPlayersCryptedMove = move;
         } else {
+            require(msg.value == firstBet);
+            secondBetDone = true;
+            secondPlayer = msg.sender;
             secondPlayersCryptedMove = move;
         }
     }
     
-    function decryptMove(string move, string secret) public isPlayer() {
+    function decryptMove(GameMove move, uint256 secret) public isPlayer() {
         require(bothMovesRegistered());
         if (msg.sender == firstPlayer) {
-            require(keccak256(move, secret) == firstPlayersCryptedMove);
-            firstPlayersChoise = move;
+            require(hashMove(move, secret) == firstPlayersCryptedMove);
+            firstPlayersChoise = GameMove(move);
+            firstMoveDecrypted = true;
         } else {
-            require(keccak256(move, secret) == secondPlayersCryptedMove);
-            secondPlayersChoise = move;
+            require(hashMove(move, secret) == secondPlayersCryptedMove);
+            secondPlayersChoise = GameMove(move);
+            secondMoveDecrypted = true;
         }
         if (bothMovesDecrypted()) {
             chooseWinner();
         }
     }
-    
+
+
     function chooseWinner() internal {
         require(bothMovesDecrypted());
         int resultOfComparation = compareMoves(firstPlayersChoise, secondPlayersChoise);
@@ -80,16 +81,15 @@ contract RockPaperScissors {
         gameOver = true;
     }
 
-    function compareMoves(string move1, string move2) internal constant returns(int) {
-        require(validMove(move1) && validMove(move2));
+    function compareMoves(GameMove move1, GameMove move2) internal constant returns(int) {
         if (keccak256(move1) == keccak256(move2)) {
             return 0;
-        } else if (keccak256(move1) == keccak256("rock")) {
-            if (keccak256(move2) == keccak256("paper")) return -1; 
-        } else if (keccak256(move1) == keccak256("paper")) {
-            if (keccak256(move2) == keccak256("scissors")) return -1; 
-        } else if (keccak256(move1) == keccak256("scissors")) {
-            if (keccak256(move2) == keccak256("rock")) return -1; 
+        } else if (move1 == GameMove.Rock) {
+            if (move2 == GameMove.Paper) return -1; 
+        } else if (move1 == GameMove.Paper) {
+            if (move2 == GameMove.Scissors) return -1; 
+        } else if (move1 == GameMove.Scissors) {
+            if (move2 == GameMove.Rock) return -1; 
         }
         return 1;
     }
@@ -99,22 +99,11 @@ contract RockPaperScissors {
     }
     
     function bothMovesDecrypted() constant internal returns(bool) {
-        return notEmpty(firstPlayersChoise) && notEmpty(secondPlayersChoise);
+        return firstMoveDecrypted && secondMoveDecrypted;
     }
     
-    function hashMove(string move, string secret) constant public returns(bytes32) {
-        require(validMove(move));
+    function hashMove(GameMove move, uint secret) constant public returns(bytes32) {
         return keccak256(move, secret);
-    }
-    
-    function validMove(string move) constant internal returns(bool valid) {
-        require(notEmpty(move));
-        bytes32 hashedMove = keccak256(move);
-        return hashedMove == keccak256("rock") || hashedMove == keccak256("paper") || hashedMove == keccak256("scissors");
-    }
-    
-    function notEmpty(string value) constant internal returns(bool) {
-        return bytes(value).length > 0;
     }
     
     function getBalance() public constant returns(uint256) {
