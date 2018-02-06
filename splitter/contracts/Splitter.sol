@@ -2,9 +2,9 @@ pragma solidity ^0.4.4;
 
 contract Splitter {
     
-    address firstRecipient;
-    address secondRecipient;
-    address owner;
+    address public firstRecipient;
+    address public secondRecipient;
+    address public owner;
     
     bool onePayoutPerformed;
     
