@@ -81,7 +81,7 @@ contract RockPaperScissors {
         gameOver = true;
     }
 
-    function compareMoves(GameMove move1, GameMove move2) internal constant returns(int) {
+    function compareMoves(GameMove move1, GameMove move2) public constant returns(int) {
         if (keccak256(move1) == keccak256(move2)) {
             return 0;
         } else if (move1 == GameMove.Rock) {
