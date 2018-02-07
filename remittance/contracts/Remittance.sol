@@ -6,6 +6,7 @@ contract Remittance {
     bytes32 recipientPasswordHash;
     
     uint256 expirationTime;
+    uint256 defaultExpirationTimeValue = uint256(0xFFFFFFF);
     
     address public owner;
     
@@ -13,6 +14,7 @@ contract Remittance {
     
     function Remittance() public {
         owner = msg.sender;
+        expirationTime = defaultExpirationTimeValue;
     }
     
     function activate(address recipientAddress, bytes32 passwordHash, uint256 expirationAfterSeconds) payable public isOwner() {
@@ -24,7 +26,7 @@ contract Remittance {
             require(expirationAfterSeconds > 0);
             expirationTime = now + expirationAfterSeconds;
         } else {
-            expirationTime = 0xFFFFFFF;
+            expirationTime = defaultExpirationTimeValue;
         }
         activated = true;
     }
@@ -35,6 +37,7 @@ contract Remittance {
         require(this.balance > 0);
         msg.sender.transfer(this.balance);
         activated = false;
+        expirationTime = defaultExpirationTimeValue;
     }
     
     function kill() public isOwner() {
@@ -47,7 +50,7 @@ contract Remittance {
     }
     
     function canExpire() public constant returns(bool) {
-        return expirationTime == 0xFFFFFFF? false : true;
+        return expirationTime == defaultExpirationTimeValue? false : true;
     }
     
     function getBalance() public constant returns(uint256) {
