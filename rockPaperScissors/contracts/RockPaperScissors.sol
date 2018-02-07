@@ -49,7 +49,7 @@ contract RockPaperScissors {
     
     function decryptMove(GameMove move, uint256 secret) public isPlayer() {
         require(bothMovesRegistered());
-        if (msg.sender == firstPlayer) {
+        if (!firstMoveDecrypted) {
             require(hashMove(move, secret) == firstPlayersCryptedMove);
             firstPlayersChoise = GameMove(move);
             firstMoveDecrypted = true;

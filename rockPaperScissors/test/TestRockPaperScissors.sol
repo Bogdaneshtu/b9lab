@@ -42,4 +42,58 @@ contract TestRockPaperScissors {
         Assert.equal(rockPaperScissors.balance, defaultBet*2, "Contract should receive bet money and hold them.");
     }
     
+    function testMakeBetsWithDifferentValuesFailExpected() {
+        RockPaperScissors.GameMove move = RockPaperScissors.GameMove.Rock;
+        bytes32 hashedMove = rockPaperScissors.hashMove(move, secret);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove);
+        bool result = rockPaperScissors.call.value(defaultBet+1)(bytes4(bytes32(sha3("makeBet(bytes32)"))), hashedMove);
+        Assert.isFalse(result, "There should be validation against not equal bets.");
+    }
+
+    function testBetsAndDecryptionsSeenProperly() {
+        RockPaperScissors.GameMove move = RockPaperScissors.GameMove.Rock;
+        bytes32 hashedMove = rockPaperScissors.hashMove(move, secret);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove);
+        uint256 playerBalanceAfterBetsDone = this.balance;
+        rockPaperScissors.decryptMove(move, secret);
+        Assert.isTrue(rockPaperScissors.firstMoveDecrypted(), "Contract should decrypt first move.");
+        rockPaperScissors.decryptMove(move, secret);
+        Assert.isTrue(rockPaperScissors.secondMoveDecrypted(), "Contract should decrypt second move.");
+    }
+    
+    function testAdrawRewardSendProperly() {
+        RockPaperScissors.GameMove move = RockPaperScissors.GameMove.Rock;
+        bytes32 hashedMove = rockPaperScissors.hashMove(move, secret);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove);
+        uint256 playerBalanceAfterBetsDone = this.balance;
+        rockPaperScissors.decryptMove(move, secret);
+        rockPaperScissors.decryptMove(move, secret);
+        Assert.equal(rockPaperScissors.winner(), address(0), "No one is winner.");
+        uint256 newBalance = this.balance;
+        uint256 reward = newBalance - playerBalanceAfterBetsDone;
+        Assert.equal(reward, defaultBet*2, "All money should be returned to players.");
+    }
+    
+    function testWinRewardSendProperly() {
+        RockPaperScissors.GameMove move1 = RockPaperScissors.GameMove.Rock;
+        bytes32 hashedMove1 = rockPaperScissors.hashMove(move1, secret);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove1);
+        RockPaperScissors.GameMove move2 = RockPaperScissors.GameMove.Scissors;
+        bytes32 hashedMove2 = rockPaperScissors.hashMove(move2, secret);
+        rockPaperScissors.makeBet.value(defaultBet)(hashedMove2);
+        uint256 playerBalanceAfterBetsDone = this.balance;
+        rockPaperScissors.decryptMove(move1, secret);
+        rockPaperScissors.decryptMove(move2, secret);
+        Assert.equal(rockPaperScissors.winner(), this, "This contract should be marked as winner.");
+        uint256 newBalance = this.balance;
+        uint256 reward = newBalance - playerBalanceAfterBetsDone;
+        Assert.equal(reward, defaultBet*2, "All money should be returned to players.");
+    }
+    
+    function () payable {
+        
+    }
+    
 }
