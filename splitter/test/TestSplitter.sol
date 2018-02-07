@@ -10,6 +10,9 @@ contract TestSplitter {
     
     address firstRecipient = 0x3cB2158E6f327B7294A9FE05574096B46f261904;
     address secondRecipient = 0xC24063d709FDC9c1Ca3e3B56789514dBdBeFa55E;
+    
+    uint256 previousFirstRecipientBalance;
+    uint256 previousSecondRecipientBalance;
 
     Splitter splitter;
     
@@ -17,6 +20,8 @@ contract TestSplitter {
 
     function beforeEach() {
         splitter = new Splitter(firstRecipient, secondRecipient);
+        previousFirstRecipientBalance = firstRecipient.balance;
+        previousSecondRecipientBalance = secondRecipient.balance;
     }
 
     function testInitializedTargetAddressesProperly() {
@@ -29,10 +34,12 @@ contract TestSplitter {
         Assert.equal(splitter.balance, moneyToSend, "Splitter should hold all transferred money until payouts will not be done.");
         splitter.performPayout();
         Assert.equal(splitter.balance, moneyToSend/2, "Splitter should hold half of balance after first payout.");
-        Assert.equal(firstRecipient.balance, moneyToSend/2, "First recipient should receive half of money.");
+        uint256 firstRecipientIncome = firstRecipient.balance - previousFirstRecipientBalance;
+        Assert.equal(firstRecipientIncome, moneyToSend/2, "First recipient should receive half of money.");
         splitter.performPayout();
         Assert.equal(splitter.balance, 0, "Splitter should has 0 balance after payouts.");
-        Assert.equal(secondRecipient.balance, moneyToSend/2, "Second recipient should receive half of money.");
+        uint256 secondRecipientIncome = secondRecipient.balance - previousSecondRecipientBalance;
+        Assert.equal(secondRecipientIncome, moneyToSend/2, "Second recipient should receive half of money.");
     }
     
     function testPerformPayoutsThreeTimesFailExpected() {
