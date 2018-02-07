@@ -43,12 +43,6 @@ contract TestSplitter {
         Assert.isFalse(result, "Third call should be throwed.");
     }
     
-    /*function testKill() {
-        Assert.isNotZero(splitter.owner(), "Owner should not be empty before kill.");
-        splitter.kill();
-        Assert.isZero(splitter.owner(), "All fields of deleted contract should be overwriten by zeros.");
-    }*/
-    
     function testKillNotEmpty() {
         splitter.refill.value(moneyToSend)();
         bool result = splitter.call(bytes4(bytes32(sha3("kill()"))));
