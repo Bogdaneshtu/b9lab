@@ -6,7 +6,7 @@ contract Remittance {
     bytes32 recipientPasswordHash;
     
     uint256 expirationTime;
-    uint256 defaultExpirationTimeValue = uint256(0xFFFFFFF);
+    uint256 defaultExpirationTimeValue = uint256(0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
     
     address public owner;
     address public initiator;
