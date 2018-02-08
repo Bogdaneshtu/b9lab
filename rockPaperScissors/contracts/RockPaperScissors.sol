@@ -49,14 +49,18 @@ contract RockPaperScissors {
     
     function decryptMove(GameMove move, uint256 secret) public isPlayer() {
         require(bothMovesRegistered());
-        if (!firstMoveDecrypted) {
-            require(hashMove(move, secret) == firstPlayersCryptedMove);
-            firstPlayersChoise = GameMove(move);
-            firstMoveDecrypted = true;
+        require(!bothMovesDecrypted());
+        if (hashMove(move, secret) == firstPlayersCryptedMove && msg.sender == firstPlayer) {
+            firstPlayersChoise = move;
+        } else if (hashMove(move, secret) == secondPlayersCryptedMove && msg.sender == secondPlayer) {
+            secondPlayersChoise = move;
         } else {
-            require(hashMove(move, secret) == secondPlayersCryptedMove);
-            secondPlayersChoise = GameMove(move);
+            revert();
+        }
+        if (firstMoveDecrypted) {
             secondMoveDecrypted = true;
+        } else {
+            firstMoveDecrypted = true;
         }
         if (bothMovesDecrypted()) {
             chooseWinner();

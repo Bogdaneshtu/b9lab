@@ -9,40 +9,52 @@ contract Remittance {
     uint256 defaultExpirationTimeValue = uint256(0xFFFFFFF);
     
     address public owner;
+    address public initiator;
     
-    bool activated;
+    event LogEnteredExtractPasswordHash(bytes32 passwordHash);
     
     function Remittance() public {
         owner = msg.sender;
         expirationTime = defaultExpirationTimeValue;
     }
     
-    function activate(address recipientAddress, bytes32 passwordHash, uint256 expirationAfterSeconds) payable public isOwner() {
+    function activate(address recipientAddress, bytes32 passwordHash, uint256 expirationAfterSeconds) payable public {
         require(msg.value > 0);
         require(recipientAddress != address(0));
         recipient = recipientAddress;
         recipientPasswordHash = passwordHash;
         if (expirationAfterSeconds != uint256(0)) {
-            require(expirationAfterSeconds > 0);
             expirationTime = now + expirationAfterSeconds;
-        } else {
-            expirationTime = defaultExpirationTimeValue;
         }
-        activated = true;
+        initiator = msg.sender;
     }
     
-    function extract(string password) public {
+    function extract(bytes32 password) public {
+        bytes32 enteredPasswordHash = keccak256(password);
+        LogEnteredExtractPasswordHash(enteredPasswordHash);
         require(recipient == msg.sender);
-        require(recipientPasswordHash == keccak256(password));
+        require(recipientPasswordHash == enteredPasswordHash);
         require(this.balance > 0);
+        // there is no check for expiration, since if contract wasn't revoked
+        // I expect it should work as usual
         msg.sender.transfer(this.balance);
-        activated = false;
+        initiator = address(0);
         expirationTime = defaultExpirationTimeValue;
     }
     
+    function revoke() public {
+        require(msg.sender == initiator);
+        require(canExpire() && isExpired());
+        msg.sender.transfer(this.balance);
+        initiator = address(0);
+    }
+    
     function kill() public isOwner() {
-        require(isExpired() || !canExpire() || getBalance() == 0);
-        selfdestruct(owner);
+        if (initiator != address(0)) {
+            selfdestruct(initiator);
+        } else {
+            selfdestruct(owner);
+        }
     }
     
     function isExpired() public constant returns (bool) {

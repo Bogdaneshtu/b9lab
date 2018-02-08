@@ -9,8 +9,8 @@ contract TestRemittance {
     uint public initialBalance = 1 ether;
     
     address recipient = this;
-    string password = "hola";
-    bytes32 hashedPassword = 0x8aca9664752dbae36135fd0956c956fc4a370feeac67485b49bcd4b99608ae41;
+    bytes32 password = keccak256("passord");
+    bytes32 hashedPassword = keccak256(password);
     uint valuetoSend = 1000;
     uint secondsBeforeExpiration = 100;
     
