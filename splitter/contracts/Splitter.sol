@@ -8,6 +8,9 @@ contract Splitter {
     
     bool onePayoutPerformed;
     
+    event LogRefill(address, address, uint256);
+    event LogPayout(address, uint256);
+    
     function Splitter() public {
         owner = msg.sender;
     }
@@ -15,28 +18,26 @@ contract Splitter {
     function refill(address recipient1, address recipient2) public payable {
         require(recipient1 != address(0));
         require(recipient2 != address(0));
+        require(msg.value % 2 == 0);
         deposites[recipient1] += msg.value/2;
         deposites[recipient2] += msg.value/2;
+        LogRefill(recipient1, recipient2, msg.value);
     }
     
-    function performPayout() public notEmpty() returns(uint256 payoutSumm) {
+    function performPayout() public returns(uint256 payoutSumm) {
         payoutSumm = deposites[msg.sender];
         require(payoutSumm > 0);
-        msg.sender.transfer(payoutSumm);
         deposites[msg.sender] = 0;
+        msg.sender.transfer(payoutSumm);
+        LogPayout(msg.sender, payoutSumm);
     }
     
-    function getBalance() public constant returns (uint256 depositBalance) {
-        return deposites[msg.sender];
+    function getBalance(address depositHolder) public constant returns (uint256 depositBalance) {
+        return deposites[depositHolder];
     }
     
     function kill() public isOwner() isEmpty() {
         selfdestruct(owner);
-    }
-    
-    modifier notEmpty() {
-        require(this.balance > 0);
-        _;
     }
     
     modifier isEmpty() {
