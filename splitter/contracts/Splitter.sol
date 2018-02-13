@@ -2,54 +2,42 @@ pragma solidity ^0.4.4;
 
 contract Splitter {
     
-    address public firstRecipient;
-    address public secondRecipient;
     address public owner;
+    
+    mapping(address => uint256) deposites;
     
     bool onePayoutPerformed;
     
-    function Splitter(address recipient1, address recipient2) public {
-        require(recipient1 != address(0));
-        require(recipient2 != address(0));
-        firstRecipient = recipient1;
-        secondRecipient = recipient2;
+    event LogRefill(address, address, uint256);
+    event LogPayout(address, uint256);
+    
+    function Splitter() public {
         owner = msg.sender;
     }
     
-    function refill() public payable payoutNotPerformedYet() returns (uint256) {
-        return getBalance();
+    function refill(address recipient1, address recipient2) public payable {
+        require(recipient1 != address(0));
+        require(recipient2 != address(0));
+        require(msg.value % 2 == 0);
+        deposites[recipient1] += msg.value/2;
+        deposites[recipient2] += msg.value/2;
+        LogRefill(recipient1, recipient2, msg.value);
     }
     
-    function performPayout() public isOwner() notEmpty() returns(address sendTo, uint256 payoutSumm) {
-        if (!onePayoutPerformed) {
-            uint256 halfOfBalance = this.balance/2;
-            require(firstRecipient.send(halfOfBalance));
-            onePayoutPerformed = true;
-            return (firstRecipient, halfOfBalance);
-        } else {
-            uint256 restOfBalance = this.balance;
-            require(secondRecipient.send(restOfBalance));
-            onePayoutPerformed = false;
-            return (secondRecipient, restOfBalance);
-        }
+    function performPayout() public returns(uint256 payoutSumm) {
+        payoutSumm = deposites[msg.sender];
+        require(payoutSumm > 0);
+        deposites[msg.sender] = 0;
+        msg.sender.transfer(payoutSumm);
+        LogPayout(msg.sender, payoutSumm);
+    }
+    
+    function getBalance(address depositHolder) public constant returns (uint256 depositBalance) {
+        return deposites[depositHolder];
     }
     
     function kill() public isOwner() isEmpty() {
         selfdestruct(owner);
-    }
-    
-    function getBalance() public constant returns(uint256) {
-        return this.balance;
-    }
-    
-    modifier payoutNotPerformedYet() {
-        require(onePayoutPerformed == false);
-        _;
-    }
-    
-    modifier notEmpty() {
-        require(this.balance > 0);
-        _;
     }
     
     modifier isEmpty() {

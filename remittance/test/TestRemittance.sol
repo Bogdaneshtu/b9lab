@@ -8,9 +8,8 @@ contract TestRemittance {
 
     uint public initialBalance = 1 ether;
     
-    address recipient = this;
-    string password = "hola";
-    bytes32 hashedPassword = 0x8aca9664752dbae36135fd0956c956fc4a370feeac67485b49bcd4b99608ae41;
+    bytes32 password = keccak256("passord");
+    bytes32 hashedPassword = keccak256(password);
     uint valuetoSend = 1000;
     uint secondsBeforeExpiration = 100;
     
@@ -51,7 +50,7 @@ contract TestRemittance {
     }
     
     function testActivateWithWrongExpirationFailExpected() {
-        bool result = remittance.call.value(valuetoSend)(bytes4(bytes32(sha3("activate(address, bytes32, uint256)"))), recipient, hashedPassword, -100);
+        bool result = remittance.call.value(valuetoSend)(bytes4(bytes32(sha3("activate(address, bytes32, uint256)"))), this, hashedPassword, -100);
         Assert.isFalse(result, "You should not be able to set such expiration time.");
     }
     
